@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Email Agent — Inbox Intelligence</title>
+  <meta name="description" content="AI-powered email segregation dashboard to track read, unread, and reply status of all your Gmail threads." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">✉</div>
+      <div class="brand-text">
+        <h1>Email Agent</h1>
+        <span>Inbox Intelligence</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="nav-all" onclick="filterEmails('all', this)">
+        <span class="nav-icon">📬</span> All Emails
+        <span class="nav-badge" id="badge-all">0</span>
+      </button>
+      <button class="nav-item" id="nav-NOT_SEEN" onclick="filterEmails('NOT_SEEN', this)">
+        <span class="nav-icon">🔴</span> Not Seen
+        <span class="nav-badge danger" id="badge-NOT_SEEN">0</span>
+      </button>
+      <button class="nav-item" id="nav-ACTION_NEEDED" onclick="filterEmails('ACTION_NEEDED', this)">
+        <span class="nav-icon">⚡</span> Action Needed
+        <span class="nav-badge warning" id="badge-ACTION_NEEDED">0</span>
+      </button>
+      <button class="nav-item" id="nav-WAITING" onclick="filterEmails('WAITING', this)">
+        <span class="nav-icon">⏳</span> Waiting
+        <span class="nav-badge info" id="badge-WAITING">0</span>
+      </button>
+      <button class="nav-item" id="nav-NO_REPLY_EVER" onclick="filterEmails('NO_REPLY_EVER', this)">
+        <span class="nav-icon">🔇</span> No Reply Ever
+        <span class="nav-badge muted" id="badge-NO_REPLY_EVER">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sync-status" id="sync-status">
+        <span class="status-dot idle"></span>
+        <span id="sync-label">Ready</span>
+      </div>
+      <button class="sync-btn" id="sync-btn" onclick="triggerSync()">
+        <span id="sync-icon">↻</span> Sync Now
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 id="current-view-title">All Emails</h2>
+        <span class="email-count" id="result-count">Loading...</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Search by subject, sender..." oninput="onSearchInput()" />
+        </div>
+        <div class="last-sync" id="last-sync-label">Last sync: —</div>
+      </div>
+    </header>
+
+    <!-- Stats Cards -->
+    <section class="stats-grid" id="stats-grid">
+      <div class="stat-card not-seen" id="stat-NOT_SEEN">
+        <div class="stat-icon">🔴</div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-val-NOT_SEEN">0</div>
+          <div class="stat-label">Not Seen</div>
+        </div>
+        <div class="stat-bar" style="--color: var(--danger)"></div>
+      </div>
+      <div class="stat-card action-needed" id="stat-ACTION_NEEDED">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-val-ACTION_NEEDED">0</div>
+          <div class="stat-label">Action Needed</div>
+        </div>
+        <div class="stat-bar" style="--color: var(--warning)"></div>
+      </div>
+      <div class="stat-card waiting" id="stat-WAITING">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-val-WAITING">0</div>
+          <div class="stat-label">Waiting for Reply</div>
+        </div>
+        <div class="stat-bar" style="--color: var(--info)"></div>
+      </div>
+      <div class="stat-card no-reply" id="stat-NO_REPLY_EVER">
+        <div class="stat-icon">🔇</div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-val-NO_REPLY_EVER">0</div>
+          <div class="stat-label">No Reply Ever</div>
+        </div>
+        <div class="stat-bar" style="--color: var(--muted)"></div>
+      </div>
+    </section>
+
+    <!-- Email List -->
+    <section class="email-list-section">
+      <div class="email-list" id="email-list">
+        <div class="loading-state" id="loading-state">
+          <div class="spinner"></div>
+          <p>Loading emails...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Email Detail Modal ──────────────────────────────── -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+    <div class="modal" id="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-content" id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

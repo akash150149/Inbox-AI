@@ -1,0 +1,26 @@
+{
+  "name": "ai-email-agent",
+  "version": "1.0.0",
+  "description": "AI-powered email segregation agent using Gmail API and Gemini",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "auth": "node src/auth.js",
+    "worker": "node src/worker.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "googleapis": "^140.0.0",
+    "@google/genai": "^0.7.0",
+    "sqlite3": "^5.1.7",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
