@@ -214,6 +214,30 @@ function openModal(index) {
     replyBlock = `<div class="modal-reply-info">🔴 This email has <strong>not been read</strong> yet.</div>`;
   }
 
+  // ── AI Draft Section (only for ACTION_NEEDED) ──
+  const draftSection = email.status === "ACTION_NEEDED" ? `
+    <div class="modal-section draft-section" id="draft-section">
+      <div class="draft-header">
+        <h4>✍️ AI Draft Reply</h4>
+        <div class="draft-actions">
+          <button class="draft-btn btn-regenerate" onclick="regenerateDraft('${email.thread_id}')" id="regen-btn">
+            <span id="regen-icon">↻</span> Regenerate
+          </button>
+          <button class="draft-btn btn-copy" onclick="copyDraft()" id="copy-btn">
+            📋 Copy
+          </button>
+        </div>
+      </div>
+      ${email.suggested_draft
+        ? `<textarea class="draft-textarea" id="draft-textarea" placeholder="AI is generating a reply...">${escHtml(email.suggested_draft)}</textarea>
+           <div class="draft-meta">Generated ${formatDate(email.draft_generated_at)} · Edit freely before copying</div>`
+        : `<div class="draft-generating" id="draft-generating">
+             <div class="spinner" style="width:20px;height:20px;border-width:2px;"></div>
+             <span>No draft yet. Click Regenerate to create one.</span>
+           </div>`
+      }
+    </div>` : "";
+
   document.getElementById("modal-content").innerHTML = `
     <div class="modal-header">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
@@ -229,6 +253,8 @@ function openModal(index) {
       <h4>Reply Status</h4>
       ${replyBlock}
     </div>
+
+    ${draftSection}
 
     ${email.ai_summary ? `
     <div class="modal-section">
@@ -256,6 +282,75 @@ function openModal(index) {
 
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("open");
+}
+
+/** Regenerate the AI draft for a given thread */
+async function regenerateDraft(threadId) {
+  const regenBtn = document.getElementById("regen-btn");
+  const regenIcon = document.getElementById("regen-icon");
+  const textarea = document.getElementById("draft-textarea");
+
+  if (regenBtn) {
+    regenBtn.disabled = true;
+    regenIcon.style.animation = "spin 1s linear infinite";
+  }
+
+  // Show generating state in textarea
+  if (textarea) {
+    textarea.value = "⏳ Generating new draft...";
+    textarea.disabled = true;
+  }
+
+  try {
+    const res = await fetch(`/api/emails/${threadId}/regenerate-draft`, { method: "POST" });
+    const json = await res.json();
+
+    if (json.success && json.draft) {
+      if (textarea) {
+        textarea.value = json.draft;
+        textarea.disabled = false;
+      } else {
+        // If no textarea existed (no previous draft), rebuild the draft section
+        const section = document.getElementById("draft-section");
+        if (section) {
+          const genEl = document.getElementById("draft-generating");
+          if (genEl) genEl.outerHTML = `<textarea class="draft-textarea" id="draft-textarea">${escHtml(json.draft)}</textarea>
+            <div class="draft-meta">Generated just now · Edit freely before copying</div>`;
+        }
+      }
+      // Update the in-memory email object so re-opens show the draft
+      const emailIdx = allEmails.findIndex(e => e.thread_id === threadId);
+      if (emailIdx !== -1) allEmails[emailIdx].suggested_draft = json.draft;
+    } else {
+      if (textarea) { textarea.value = "❌ Failed to generate draft. Try again."; textarea.disabled = false; }
+    }
+  } catch (err) {
+    if (textarea) { textarea.value = `❌ Error: ${err.message}`; textarea.disabled = false; }
+  } finally {
+    if (regenBtn) {
+      regenBtn.disabled = false;
+      regenIcon.style.animation = "";
+    }
+  }
+}
+
+/** Copy the draft textarea content to clipboard */
+async function copyDraft() {
+  const textarea = document.getElementById("draft-textarea");
+  const copyBtn = document.getElementById("copy-btn");
+  if (!textarea || !textarea.value) return;
+
+  try {
+    await navigator.clipboard.writeText(textarea.value);
+    copyBtn.textContent = "✅ Copied!";
+    setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 2500);
+  } catch (e) {
+    // Fallback for older browsers
+    textarea.select();
+    document.execCommand("copy");
+    copyBtn.textContent = "✅ Copied!";
+    setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 2500);
+  }
 }
 
 // ── Filter & Search ───────────────────────────────────────────────

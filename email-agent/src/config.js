@@ -18,6 +18,8 @@ const config = {
   },
   user: {
     email: process.env.USER_EMAIL,
+    name: process.env.USER_NAME || "the user",
+    persona: process.env.USER_PERSONA || "Professional and concise. Keep replies brief and to the point.",
   },
   app: {
     port: parseInt(process.env.PORT || "3000", 10),

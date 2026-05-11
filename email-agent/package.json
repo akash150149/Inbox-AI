@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "auth": "node src/auth.js",
     "worker": "node src/worker.js",
+    "reset": "node -e \"const fs=require('fs');['data/email_agent.db'].forEach(f=>{try{fs.unlinkSync(f);console.log('✅ Reset complete. Run npm start for a fresh sync.');}catch(e){console.log('ℹ️  Nothing to reset.');}});\"",
     "dev": "nodemon src/server.js"
   },
   "dependencies": {

@@ -2,8 +2,8 @@
 const cron = require("node-cron");
 const { config } = require("./config");
 const { fetchThreads, fetchThreadDetail } = require("./gmailService");
-const { classifyThread } = require("./aiAgent");
-const { upsertEmail, getState, setState, logSync } = require("./db");
+const { classifyThread, generateDraft } = require("./aiAgent");
+const { upsertEmail, updateDraft, getState, setState, logSync } = require("./db");
 
 /**
  * Core sync logic — fetches, analyzes, and saves email thread statuses.
@@ -65,6 +65,18 @@ async function runSync() {
 
         threadsUpdated++;
         console.log(` ✅ ${classification.status}`);
+
+        // For ACTION_NEEDED threads, auto-generate an AI draft reply
+        if (classification.status === "ACTION_NEEDED") {
+          try {
+            process.stdout.write(`   ✍️  Generating draft for ${thread.id}...`);
+            const draft = await generateDraft(threadData);
+            await updateDraft(thread.id, draft);
+            console.log(" 📝 Draft saved.");
+          } catch (draftErr) {
+            console.log(` ⚠️  Draft failed: ${draftErr.message}`);
+          }
+        }
 
         // Small delay to avoid hitting API rate limits
         await new Promise((r) => setTimeout(r, 200));

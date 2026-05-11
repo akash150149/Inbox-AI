@@ -454,6 +454,107 @@ body {
 }
 .modal-reply-info strong { color: var(--text-primary); }
 
+/* ── Draft Panel ─────────────────────────────────────────────────── */
+.draft-section {
+  background: linear-gradient(135deg, rgba(108,99,255,0.06), rgba(167,139,250,0.04));
+  border: 1px solid rgba(108,99,255,0.25);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.draft-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.draft-header h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #a78bfa;
+  font-weight: 700;
+  margin: 0;
+}
+
+.draft-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.draft-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-regenerate {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+.btn-regenerate:hover:not(:disabled) {
+  background: rgba(108,99,255,0.2);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+.btn-regenerate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-copy {
+  background: rgba(52,211,153,0.1);
+  color: var(--success);
+  border-color: rgba(52,211,153,0.3);
+}
+.btn-copy:hover {
+  background: rgba(52,211,153,0.2);
+  box-shadow: 0 0 12px rgba(52,211,153,0.2);
+}
+
+.draft-textarea {
+  width: 100%;
+  min-height: 140px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 12px 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.draft-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.draft-textarea:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.draft-meta {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.draft-generating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }

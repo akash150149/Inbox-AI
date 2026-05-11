@@ -3,9 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const { config, validateConfig } = require("./config");
-const { getEmails, getStats, getSyncHistory } = require("./db");
-const { runSync } = require("./worker");
-const { startWorker } = require("./worker");
+const { getEmails, getStats, getSyncHistory, updateDraft, getEmailByThreadId } = require("./db");
+const { generateDraft } = require("./aiAgent");
+const { fetchThreadDetail } = require("./gmailService");
+const { runSync, startWorker } = require("./worker");
 
 validateConfig();
 
@@ -76,6 +77,31 @@ app.post("/api/sync", async (req, res) => {
 /** GET /api/health - Health check endpoint */
 app.get("/api/health", (req, res) => {
   res.json({ success: true, status: "running", timestamp: new Date().toISOString() });
+});
+
+/** POST /api/emails/:threadId/regenerate-draft - Re-generate AI draft for a thread */
+app.post("/api/emails/:threadId/regenerate-draft", async (req, res) => {
+  const { threadId } = req.params;
+  try {
+    // Check thread exists in DB
+    const email = await getEmailByThreadId(threadId);
+    if (!email) {
+      return res.status(404).json({ success: false, error: "Thread not found in database." });
+    }
+
+    // Fetch live thread data from Gmail
+    const threadData = await fetchThreadDetail(threadId);
+
+    // Generate a fresh draft
+    const draft = await generateDraft(threadData);
+
+    // Save to DB
+    await updateDraft(threadId, draft);
+
+    res.json({ success: true, draft });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ── Start Server & Worker ──────────────────────────────────────────

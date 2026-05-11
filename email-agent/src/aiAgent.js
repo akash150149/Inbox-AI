@@ -152,4 +152,61 @@ async function classifyThread(threadData) {
   return await aiClassify(threadData);
 }
 
-module.exports = { classifyThread };
+/**
+ * Generate a context-aware reply draft for ACTION_NEEDED threads.
+ * @param {object} threadData - Output of fetchThreadDetail()
+ * @returns {string} The AI-drafted reply body
+ */
+async function generateDraft(threadData) {
+  const { messages } = threadData;
+  const userEmail = config.user.email;
+  const userName = config.user.name;
+  const userPersona = config.user.persona;
+
+  // Build thread context — use last 5 messages to stay within token limits
+  const sorted = [...messages].sort((a, b) => a.dateTimestamp - b.dateTimestamp);
+  const recentMessages = sorted.slice(-5);
+
+  const threadText = recentMessages
+    .map(
+      (m, i) => `--- Message ${i + 1} ---
+From: ${m.from} <${m.fromEmail}>
+Date: ${m.date}
+Body: ${m.body || m.snippet || "(no content)"}
+`
+    )
+    .join("\n");
+
+  const lastSender = recentMessages[recentMessages.length - 1];
+
+  const prompt = `You are a professional email assistant drafting a reply on behalf of ${userName} (${userEmail}).
+
+WRITING STYLE / PERSONA:
+${userPersona}
+
+EMAIL THREAD (most recent messages):
+${threadText}
+
+The last message was from: ${lastSender.from} <${lastSender.fromEmail}>
+
+INSTRUCTIONS:
+- Write a professional, context-aware reply to the last message.
+- Match the writing style described in the persona above.
+- Do NOT include a subject line.
+- Do NOT include "Dear" or overly formal openers unless the thread is formal.
+- Do NOT add a sign-off name (the user will add it).
+- Keep the reply focused and concise.
+- Only output the body of the reply email. No extra explanation.
+
+DRAFT REPLY:`;
+
+  const response = await genAI.models.generateContent({
+    model: config.gemini.model,
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+  });
+
+  const draftText = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return draftText.trim();
+}
+
+module.exports = { classifyThread, generateDraft };

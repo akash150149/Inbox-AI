@@ -35,6 +35,8 @@ const CREATE_SCHEMA = `
     last_message_date TEXT,
     total_messages INTEGER DEFAULT 1,
     ai_summary TEXT,
+    suggested_draft TEXT,
+    draft_generated_at TEXT,
     raw_labels TEXT,
     first_seen_at TEXT DEFAULT (datetime('now')),
     last_synced_at TEXT DEFAULT (datetime('now'))
@@ -123,6 +125,19 @@ async function upsertEmail(emailData) {
   return dbRun(sql, params);
 }
 
+/** Update only the AI draft for a specific thread */
+async function updateDraft(threadId, draftText) {
+  return dbRun(
+    `UPDATE emails SET suggested_draft = ?, draft_generated_at = datetime('now') WHERE thread_id = ?`,
+    [draftText, threadId]
+  );
+}
+
+/** Get a single email by thread_id */
+async function getEmailByThreadId(threadId) {
+  return dbGet(`SELECT * FROM emails WHERE thread_id = ?`, [threadId]);
+}
+
 /** Get all emails, optionally filtered by status */
 async function getEmails(status = null) {
   if (status) {
@@ -172,4 +187,4 @@ async function getSyncHistory() {
   return dbAll(`SELECT * FROM sync_log ORDER BY synced_at DESC LIMIT 10`);
 }
 
-module.exports = { upsertEmail, getEmails, getStats, getState, setState, logSync, getSyncHistory };
+module.exports = { upsertEmail, updateDraft, getEmailByThreadId, getEmails, getStats, getState, setState, logSync, getSyncHistory };
